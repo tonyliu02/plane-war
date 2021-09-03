@@ -54,6 +54,11 @@ BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 
+# create "start again" and "end game" images
+# the reason why the their rect couldn't be obtained here is because the positions will be different for pausing and game over
+again_image = pygame.image.load('images/again.png').convert_alpha()
+end_game_image = pygame.image.load('images/end_game.png').convert_alpha()
+
 
 # create small enemies
 def add_small_enemies(group1, group2, num):
@@ -82,6 +87,21 @@ def add_large_enemies(group1, group2, num):
 def inc_speed(group, increment):
     for each in group:
         each.speed += increment
+
+
+def create_again_endgame(again_rect, end_game_rect):
+    # show the "start again" and "end game" button
+    screen.blit(again_image, again_rect)
+    screen.blit(end_game_image, end_game_rect)
+
+    # pygame.mouse.get_pressed() returns a list of boolean values representing the states of the buttons
+    if pygame.mouse.get_pressed()[0]:
+        pos = pygame.mouse.get_pos()
+        if again_rect.left < pos[0] < again_rect.right and again_rect.top < pos[1] < again_rect.bottom:
+            main()
+        elif end_game_rect.left < pos[0] < end_game_rect.right and end_game_rect.top < pos[1] < end_game_rect.bottom:
+            pygame.quit()
+            sys.exit()
 
 
 def main():
@@ -167,14 +187,6 @@ def main():
     life_num = 3
     INVINCIBLE_TIME = USEREVENT + 2
 
-    # about game over
-    again_image = pygame.image.load('images/again.png').convert_alpha()
-    again_rect = again_image.get_rect()
-    again_rect.left, again_rect.top = (width - again_rect.width) // 2, height - 300
-    gameover_image = pygame.image.load('images/gameover.png').convert_alpha()
-    gameover_rect = gameover_image.get_rect()
-    gameover_rect.left, gameover_rect.top = (width - gameover_rect.width) // 2, height - 250
-
     # initialize best score and whether or not it is recorded in the document
     best_score = 0
     recorded = False
@@ -201,6 +213,7 @@ def main():
                         pygame.mixer.music.unpause()
 
             elif event.type == MOUSEMOTION:
+                # if the mouse hovers over the pause button, change the button to the pressed ones
                 if control_rect.collidepoint(event.pos):
                     if pause:
                         control_image = resume_pressed_image
@@ -249,7 +262,7 @@ def main():
             if key_pressed[K_s] or key_pressed[K_DOWN]:
                 me.moveDown()
 
-            # launch bullets
+            # launch bullets every 10 frames
             if not (delay % 10):
                 if is_double_bullet:
                     bullet2[bullet2_index].reset((me.rect.centerx - 33, me.rect.centery))
@@ -444,6 +457,17 @@ def main():
             content = "score: " + str(count)
             screen.blit(font.render(content, True, (255, 255, 255)), (10, 5))
 
+        # =============================== if the game is paused ========================
+        elif pause:
+            # if the game is paused, show the "start again" and "end game" buttons
+            # first create the rect for "start again" and "end game" buttons, and set their positions
+            again_rect = again_image.get_rect()
+            again_rect.left, again_rect.top = (width - again_rect.width) // 2, height - 400
+            end_game_rect = end_game_image.get_rect()
+            end_game_rect.left, end_game_rect.top = (width - end_game_rect.width) // 2, height - 310
+
+            create_again_endgame(again_rect, end_game_rect)
+
         # =============================== if game is over =======================
         elif life_num == 0:
 
@@ -481,20 +505,10 @@ def main():
             screen.blit(score_text, score_rect)
             screen.blit(score2_text, score2_rect)
 
-            # also show the "start again" and "end game" button
-            screen.blit(again_image, again_rect)
-            screen.blit(gameover_image, gameover_rect)
-
-            # pygame.mouse.get_pressed() returns a list of boolean values representing the states of the buttons
-            if pygame.mouse.get_pressed()[0]:
-                pos = pygame.mouse.get_pos()
-                if again_rect.left < pos[0] < again_rect.right and \
-                        again_rect.top < pos[1] < again_rect.bottom:
-                    main()
-                elif gameover_rect.left < pos[0] < gameover_rect.right and \
-                        gameover_rect.top < pos[1] < gameover_rect.bottom:
-                    pygame.quit()
-                    sys.exit()
+            # if the game is over, create the "start again" and "end game" buttons
+            again_rect.left, again_rect.top = (width - again_rect.width) // 2, height - 300
+            end_game_rect.left, end_game_rect.top = (width - end_game_rect.width) // 2, height - 250
+            create_again_endgame(again_rect, end_game_rect)
 
         # delay
         delay -= 1
@@ -538,6 +552,7 @@ def main():
 
         # update the content of the entire screen
         pygame.display.flip()
+        # the program will never run more than 60 frames/sec
         clock.tick(60)
 
 
