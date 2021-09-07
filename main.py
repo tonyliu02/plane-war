@@ -214,10 +214,12 @@ def main():
                         pygame.time.set_timer(SUPPLY_TIME, 0)
                         pygame.mixer.pause()
                         pygame.mixer.music.pause()
+                        control_image = resume_pressed_image
                     else:
                         pygame.time.set_timer(SUPPLY_TIME, 30 * 1000)
                         pygame.mixer.unpause()
                         pygame.mixer.music.unpause()
+                        control_image = pause_pressed_image
 
             elif event.type == MOUSEMOTION:
                 # if the mouse hovers over the pause button, change the button to the pressed ones
